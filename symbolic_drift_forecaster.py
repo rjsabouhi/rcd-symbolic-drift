@@ -44,7 +44,7 @@ def simulate_drift(theta, mu, entropy_grad, steps=20):
 # ------------------------------
 
 st.set_page_config(page_title="Symbolic Drift Forecaster", layout="wide")
-st.title("📉 Symbolic Drift Forecaster")
+st.title("Symbolic Drift Forecaster")
 st.markdown("Simulate alignment drift in symbolic systems using clinging (Θ), memory tension (μ), and entropy gradient (∇S).")
 
 col1, col2 = st.columns(2)
