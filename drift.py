@@ -1,4 +1,3 @@
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -13,6 +12,9 @@ def compute_coherence(theta, entropy_grad):
 
 def compute_drift(gamma, mu):
     return mu * (1 - gamma)
+
+def compute_tau(gamma, delta_M, entropy_grad):
+    return gamma * (delta_M + entropy_grad)
 
 def compute_fate(drift):
     if drift < 0.2:
@@ -30,14 +32,16 @@ def simulate_drift(theta, mu, entropy_grad, steps=20):
     times = np.arange(steps)
     gammas = []
     deltas = []
+    taus = []
     for t in times:
-        # Slight increase in entropy over time
-        local_entropy = entropy_grad + 0.05 * t
+        local_entropy = entropy_grad + 0.05 * t  # Slight increase over time
         gamma = compute_coherence(theta, local_entropy)
         delta = compute_drift(gamma, mu)
+        tau = compute_tau(gamma, mu, local_entropy)
         gammas.append(gamma)
         deltas.append(delta)
-    return times, gammas, deltas
+        taus.append(tau)
+    return times, gammas, deltas, taus
 
 # ------------------------------
 # Streamlit App
@@ -54,12 +58,14 @@ with col1:
     entropy_grad = st.slider("∇S — Entropy gradient", 0.1, 10.0, 1.0, 0.1)
 
 # Run simulation
-t, gammas, deltas = simulate_drift(theta, mu, entropy_grad)
+t, gammas, deltas, taus = simulate_drift(theta, mu, entropy_grad)
 final_drift = deltas[-1]
+final_tau = taus[-1]
 fate = compute_fate(final_drift)
 
 with col2:
     st.metric("Final Drift δ", f"{final_drift:.4f}")
+    st.metric("Symbolic Time τ", f"{final_tau:.4f}")
     st.metric("System Fate ψ", fate.upper())
     if fate == "recover":
         st.success("System likely to recover original alignment.")
@@ -72,12 +78,13 @@ with col2:
 fig, ax = plt.subplots(figsize=(8, 4))
 ax.plot(t, gammas, label="Coherence γ(t)")
 ax.plot(t, deltas, label="Drift δ(t)", linestyle='--')
+ax.plot(t, taus, label="Symbolic Time τ(t)", linestyle=':')
 ax.set_xlabel("Time")
 ax.set_ylabel("Value")
-ax.set_title("Symbolic Drift Over Time")
+ax.set_title("Symbolic Drift and Time Dynamics")
 ax.legend()
 st.pyplot(fig)
 
 # Footer
 st.markdown("---")
-st.caption("Symbolic Drift Forecaster uses Recursive Cognitive Dynamics to simulate symbolic misalignment risk. Drift is a function of memory tension and entropy acting on symbolic clinging.")
+st.caption("Symbolic Drift Forecaster uses Recursive Cognitive Dynamics to simulate symbolic misalignment risk. Drift is a function of memory tension and entropy acting on symbolic clinging. Time drift τ(t) reflects recursive memory-phase accumulation.")
